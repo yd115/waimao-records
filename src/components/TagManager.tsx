@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,26 +6,29 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Settings, Plus, Trash2 } from 'lucide-react';
 import type { Tag } from '@/types';
-import { tagStorage } from '@/lib/storage';
+import { tagApi } from '@/db/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export function TagManager() {
+  const { user } = useAuth();
   const [tags, setTags] = useState<Tag[]>([]);
   const [newTagName, setNewTagName] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+
+  const loadTags = useCallback(async () => {
+    const allTags = await tagApi.getAll();
+    setTags(allTags);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       loadTags();
     }
-  }, [isOpen]);
+  }, [isOpen, loadTags]);
 
-  const loadTags = () => {
-    const allTags = tagStorage.getAll();
-    setTags(allTags);
-  };
-
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
+    if (!user) return;
     const trimmedName = newTagName.trim();
     if (!trimmedName) {
       toast.error('标签名称不能为空');
@@ -37,22 +40,25 @@ export function TagManager() {
       return;
     }
 
-    const newTag: Tag = {
-      id: `tag-${Date.now()}`,
-      name: trimmedName,
-    };
-
-    tagStorage.add(newTag);
-    loadTags();
-    setNewTagName('');
-    toast.success('标签已添加');
+    const result = await tagApi.create(trimmedName, user.id);
+    if (result) {
+      loadTags();
+      setNewTagName('');
+      toast.success('标签已添加');
+    } else {
+      toast.error('创建标签失败');
+    }
   };
 
-  const handleDeleteTag = (id: string, name: string) => {
+  const handleDeleteTag = async (id: string, name: string) => {
     if (window.confirm(`确定要删除标签"${name}"吗？`)) {
-      tagStorage.delete(id);
-      loadTags();
-      toast.success('标签已删除');
+      const success = await tagApi.delete(id);
+      if (success) {
+        loadTags();
+        toast.success('标签已删除');
+      } else {
+        toast.error('删除标签失败');
+      }
     }
   };
 

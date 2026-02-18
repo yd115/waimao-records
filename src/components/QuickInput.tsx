@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,8 @@ import { CalendarIcon, Plus, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { Tag } from '@/types';
-import { tagStorage } from '@/lib/storage';
+import { tagApi } from '@/db/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface QuickInputProps {
@@ -19,6 +20,7 @@ interface QuickInputProps {
 }
 
 export function QuickInput({ onSubmit }: QuickInputProps) {
+  const { user } = useAuth();
   const [content, setContent] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [timestamp, setTimestamp] = useState<Date>(new Date());
@@ -28,14 +30,14 @@ export function QuickInput({ onSubmit }: QuickInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 加载标签
-  useEffect(() => {
-    loadTags();
+  const loadTags = useCallback(async () => {
+    const tags = await tagApi.getAll();
+    setAllTags(tags);
   }, []);
 
-  const loadTags = () => {
-    const tags = tagStorage.getAll();
-    setAllTags(tags);
-  };
+  useEffect(() => {
+    loadTags();
+  }, [loadTags]);
 
   // 切换标签选择
   const toggleTag = (tagName: string) => {
@@ -51,7 +53,8 @@ export function QuickInput({ onSubmit }: QuickInputProps) {
   };
 
   // 添加新标签
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
+    if (!user) return;
     const trimmedName = newTagName.trim();
     if (!trimmedName) {
       toast.error('标签名称不能为空');
@@ -63,22 +66,21 @@ export function QuickInput({ onSubmit }: QuickInputProps) {
       return;
     }
 
-    const newTag: Tag = {
-      id: `tag-${Date.now()}`,
-      name: trimmedName,
-    };
-
-    tagStorage.add(newTag);
-    loadTags();
-    
-    // 自动勾选新创建的标签
-    if (selectedTags.length < 2) {
-      setSelectedTags([...selectedTags, trimmedName]);
+    const result = await tagApi.create(trimmedName, user.id);
+    if (result) {
+      loadTags();
+      
+      // 自动勾选新创建的标签
+      if (selectedTags.length < 2) {
+        setSelectedTags([...selectedTags, trimmedName]);
+      }
+      
+      setNewTagName('');
+      setIsAddingTag(false);
+      toast.success('标签已创建并勾选');
+    } else {
+      toast.error('创建标签失败');
     }
-    
-    setNewTagName('');
-    setIsAddingTag(false);
-    toast.success('标签已创建并勾选');
   };
 
   // 提交记录

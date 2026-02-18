@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Search, Filter, X, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { Tag } from '@/types';
-import { tagStorage } from '@/lib/storage';
+import { tagApi } from '@/db/api';
 
 interface FilterBarProps {
   onFilterChange: (tags: string[], keyword: string, date?: Date) => void;
@@ -20,18 +20,18 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [allTags, setAllTags] = useState<Tag[]>([]);
 
-  useEffect(() => {
-    loadTags();
+  const loadTags = useCallback(async () => {
+    const tags = await tagApi.getAll();
+    setAllTags(tags);
   }, []);
-
   useEffect(() => {
     onFilterChange(selectedTags, keyword, selectedDate);
   }, [selectedTags, keyword, selectedDate, onFilterChange]);
 
-  const loadTags = () => {
-    const tags = tagStorage.getAll();
-    setAllTags(tags);
-  };
+
+  useEffect(() => {
+    loadTags();
+  }, [loadTags]);
 
   const toggleTag = (tagName: string) => {
     if (selectedTags.includes(tagName)) {

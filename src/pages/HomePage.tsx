@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { QuickInput } from '@/components/QuickInput';
 import { FilterBar } from '@/components/FilterBar';
@@ -7,78 +7,109 @@ import { RecordList } from '@/components/RecordList';
 import { EditDialog } from '@/components/EditDialog';
 import { TagManager } from '@/components/TagManager';
 import { TodayCustomers } from '@/components/TodayCustomers';
-import { Download, FileText, Info, Calculator } from 'lucide-react';
+import { Download, FileText, Info, Calculator, LogOut, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { BusinessRecord } from '@/types';
-import { recordStorage } from '@/lib/storage';
+import { recordApi, tagApi } from '@/db/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { exportToCSV, exportByDate } from '@/lib/csv';
 import { analyzeContent } from '@/lib/analyzer';
 import { toast } from 'sonner';
 
 export default function HomePage() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [records, setRecords] = useState<BusinessRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<BusinessRecord[]>([]);
   const [editingRecord, setEditingRecord] = useState<BusinessRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // 加载记录
+  const loadRecords = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const allRecords = await recordApi.getAll();
+      setRecords(allRecords);
+      setFilteredRecords(allRecords);
+      
+      // 检查是否需要初始化默认标签
+      const tags = await tagApi.getAll();
+      if (tags.length === 0) {
+        await tagApi.initializeDefaults(user.id);
+      }
+    } catch (error) {
+      toast.error('加载记录失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     loadRecords();
-  }, []);
-
-  const loadRecords = () => {
-    const allRecords = recordStorage.getAll();
-    setRecords(allRecords);
-    setFilteredRecords(allRecords);
-  };
+  }, [loadRecords]);
 
   // 添加新记录
-  const handleAddRecord = (content: string, tags: string[], timestamp: Date) => {
-    const newRecord: BusinessRecord = {
-      id: `record-${Date.now()}`,
+  const handleAddRecord = async (content: string, tags: string[], timestamp: Date) => {
+    if (!user) return;
+    
+    const newRecordData = {
       timestamp: timestamp.toISOString(),
       content,
       tags,
-      createdAt: new Date().toISOString(),
-      structured: analyzeContent(content), // 智能分析内容
+      structured: analyzeContent(content),
     };
 
-    recordStorage.save(newRecord);
-    loadRecords();
+    const result = await recordApi.create(newRecordData, user.id);
+    if (result) {
+      loadRecords();
+    } else {
+      toast.error('保存记录失败');
+    }
   };
 
   // 更新记录
-  const handleUpdateRecord = (
+  const handleUpdateRecord = async (
     id: string,
     content: string,
     tags: string[],
     timestamp: Date,
     keepOriginalTime: boolean
   ) => {
-    const record = records.find(r => r.id === id);
-    if (!record) return;
+    if (!user) return;
 
     const updatedData: Partial<BusinessRecord> = {
       content,
       tags,
       timestamp: timestamp.toISOString(),
-      structured: analyzeContent(content), // 重新分析内容
+      structured: analyzeContent(content),
     };
 
-    // 如果勾选了"保留原始记录时间"，则不更新 createdAt
-    if (!keepOriginalTime) {
-      updatedData.createdAt = timestamp.toISOString();
+    const result = await recordApi.update(id, updatedData);
+    if (result) {
+      loadRecords();
+    } else {
+      toast.error('更新记录失败');
     }
-
-    recordStorage.update(id, updatedData);
-    loadRecords();
   };
 
   // 删除记录
-  const handleDeleteRecord = (id: string) => {
-    recordStorage.delete(id);
-    loadRecords();
+  const handleDeleteRecord = async (id: string) => {
+    const success = await recordApi.delete(id);
+    if (success) {
+      loadRecords();
+      toast.success('记录已删除');
+    } else {
+      toast.error('删除记录失败');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+    toast.success('已注销');
   };
 
   // 筛选记录
@@ -156,13 +187,24 @@ export default function HomePage() {
       <div className="container max-w-full mx-auto py-4 px-3 space-y-4">
         {/* 页头 - 移动端优化 */}
         <div className="space-y-3">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">
-              外贸工作记录
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              快速记录和查找工作信息
-            </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-foreground">
+                外贸工作记录
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                快速记录和查找工作信息
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-right hidden sm:block mr-2">
+                <p className="text-xs font-medium">{user?.email?.split('@')[0]}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">在线</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={handleSignOut} title="注销">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           
           {/* 操作按钮 - 移动端横向滚动 */}
@@ -196,7 +238,7 @@ export default function HomePage() {
           <AlertDescription className="text-xs leading-relaxed">
             <div className="space-y-1">
               <div><strong>智能分析：</strong>自动识别客户、国家、产品和流程关键词</div>
-              <div><strong>隐私承诺：</strong>数据仅保存在本地，永不联网</div>
+              <div><strong>隐私安全：</strong>数据永久存储在 Supabase 数据库中，受加密保护</div>
             </div>
           </AlertDescription>
         </Alert>
@@ -260,7 +302,7 @@ export default function HomePage() {
         {/* 页脚信息 */}
         <div className="text-center text-sm text-muted-foreground pt-8 pb-4">
           <p>© 2026 外贸工作记录</p>
-          <p className="mt-1">数据存储位置：浏览器本地存储（LocalStorage）</p>
+          <p className="mt-1">数据存储位置：Supabase 数据库</p>
         </div>
       </div>
     </div>

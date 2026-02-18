@@ -1,5 +1,6 @@
 import HomePage from './pages/HomePage';
 import { QuoteGeneratorPage } from './pages/QuoteGeneratorPage';
+import LoginPage from './pages/LoginPage';
 import type { ReactNode } from 'react';
 
 interface RouteConfig {
@@ -10,6 +11,11 @@ interface RouteConfig {
 }
 
 const routes: RouteConfig[] = [
+  {
+    name: '登录',
+    path: '/login',
+    element: <LoginPage />
+  },
   {
     name: '外贸工作记录',
     path: '/',

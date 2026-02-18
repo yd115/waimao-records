@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { BusinessRecord, Tag } from '@/types';
-import { tagStorage } from '@/lib/storage';
+import { tagApi } from '@/db/api';
 import { toast } from 'sonner';
 
 interface EditDialogProps {
@@ -29,6 +29,11 @@ export function EditDialog({ record, open, onOpenChange, onSave }: EditDialogPro
   const [keepOriginalTime, setKeepOriginalTime] = useState(false);
   const [allTags, setAllTags] = useState<Tag[]>([]);
 
+  const loadTags = useCallback(async () => {
+    const tags = await tagApi.getAll();
+    setAllTags(tags);
+  }, []);
+
   useEffect(() => {
     if (record && open) {
       setContent(record.content);
@@ -37,12 +42,7 @@ export function EditDialog({ record, open, onOpenChange, onSave }: EditDialogPro
       setKeepOriginalTime(false);
       loadTags();
     }
-  }, [record, open]);
-
-  const loadTags = () => {
-    const tags = tagStorage.getAll();
-    setAllTags(tags);
-  };
+  }, [record, open, loadTags]);
 
   const toggleTag = (tagName: string) => {
     if (selectedTags.includes(tagName)) {

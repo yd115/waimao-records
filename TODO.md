@@ -1,57 +1,33 @@
-# 任务：移动端/小程序布局优化
+# 任务：将应用数据永久存储到 Supabase 数据库并实现用户登录
 
 ## 计划
-- [x] 步骤1: 优化主页面布局（HomePage）
-  - [x] 调整容器宽度和内边距
-  - [x] 优化页头标题和描述字号
-  - [x] 操作按钮横向滚动布局
-  - [x] 优化间距和字号
-
-- [x] 步骤2: 优化快速输入组件（QuickInput）
-  - [x] 调整卡片内边距
-  - [x] 优化时间选择器按钮尺寸
-  - [x] 增大文本输入框字号和高度
-  - [x] 优化标签选择区域
-  - [x] 增大提交按钮尺寸
-
-- [x] 步骤3: 优化筛选栏（FilterBar）
-  - [x] 改为纵向布局
-  - [x] 优化搜索框高度和字号
-  - [x] 调整日期和标签筛选按钮
-  - [x] 优化已选条件显示
-
-- [x] 步骤4: 优化记录项（RecordItem）
-  - [x] 调整卡片内边距
-  - [x] 优化时间戳显示格式
-  - [x] 增大内容文字字号
-  - [x] 优化结构化信息显示
-  - [x] 调整操作按钮尺寸
-
-- [x] 步骤5: 优化今日客户组件（TodayCustomers）
-  - [x] 调整卡片布局
-  - [x] 优化按钮尺寸和文字
-  - [x] 优化对话框内容显示
-
-- [x] 步骤6: 优化报价生成器页面（QuoteGeneratorPage）
-  - [x] 调整页面容器和内边距
-  - [x] 优化标题和说明文字
-  - [x] 调整卡片内边距
-  - [x] 优化输入输出区域
-
-- [x] 步骤7: 优化标签管理（TagManager）
-  - [x] 调整按钮尺寸和文字
-  - [x] 优化对话框布局
-  - [x] 增大输入框和按钮
-
-- [x] 步骤8: 运行 lint 检查
-  - [x] 确保所有代码通过检查
+- [x] 步骤 1: 数据库迁移 (SQL)
+  - [x] 创建 `user_role` 枚举和 `profiles` 表
+  - [x] 创建 `handle_new_user` 触发器函数和触发器
+  - [x] 创建 `tags` 表和 `records` 表
+  - [x] 设置 RLS (行级安全) 策略
+- [x] 步骤 2: 配置身份验证
+  - [x] 调用 `supabase_verification` 禁用邮箱验证（使用用户名登录模拟）
+  - [x] 更新 `src/context/AuthContext.tsx` 实现登录/注册/注销逻辑
+  - [x] 更新 `src/components/common/RouteGuard.tsx` 处理路由拦截
+- [x] 步骤 3: 路由和页面调整
+  - [x] 创建 `src/pages/LoginPage.tsx`
+  - [x] 更新 `src/routes.tsx` 添加登录路由
+  - [x] 在 `src/App.tsx` 中集成 AuthProvider 和 RouteGuard
+- [x] 步骤 4: 实现数据库 API
+  - [x] 创建 `src/db/api.ts` 封装标签和记录的 CRUD 操作
+- [x] 步骤 5: 更新业务组件
+  - [x] 更新 `src/pages/HomePage.tsx` 以使用数据库数据
+  - [x] 更新 `src/components/QuickInput.tsx`
+  - [x] 更新 `src/components/TagManager.tsx`
+  - [x] 更新 `src/components/FilterBar.tsx`
+  - [x] 更新 `src/components/EditDialog.tsx`
+  - [x] 更新 `src/components/TodayCustomers.tsx` (间接支持)
+- [x] 步骤 6: 验证与清理
+  - [x] 运行 lint 检查
+  - [x] 验证数据持久化和用户隔离
 
 ## 注释
-- ✅ 所有页面已优化为适合小程序/移动端访问的布局
-- ✅ 字号调整：标题 text-xl/text-base，正文 text-sm，辅助文字 text-xs
-- ✅ 按钮尺寸：最小 h-8/h-9，确保触摸区域足够大
-- ✅ 输入框：增大到 h-10，字号 text-base
-- ✅ 间距优化：使用 p-3、gap-2、space-y-3 等更紧凑的间距
-- ✅ 布局优化：多用纵向布局，减少横向排列
-- ✅ 响应式优化：使用 flex-wrap、overflow-x-auto、truncate 等
-- ✅ 所有代码通过 lint 检查
+- 存储库信息：`/workspace/app-9lfvx6paw8ap`
+- 使用用户名 + 密码登录（模拟邮箱格式 `username@miaoda.com`）
+- 初始标签将在用户首次进入时自动创建（或通过迁移插入默认值）
