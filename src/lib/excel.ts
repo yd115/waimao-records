@@ -3,7 +3,7 @@ import type { BusinessRecord } from '@/types';
 import { format } from 'date-fns';
 
 /**
- * 导出记录为 Excel 文件
+ * 导出记录为 Excel 文件（iOS 兼容）
  */
 export function exportToExcel(records: BusinessRecord[], filename?: string) {
   if (records.length === 0) {
@@ -44,8 +44,30 @@ export function exportToExcel(records: BusinessRecord[], filename?: string) {
   const defaultFilename = `工作记录_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
   const finalFilename = filename || defaultFilename;
 
-  // 导出文件
-  XLSX.writeFile(wb, finalFilename);
+  // iOS Safari 兼容的导出方式
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  
+  // 创建下载链接
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = finalFilename;
+  
+  // iOS Safari 需要特殊处理
+  if (navigator.userAgent.match(/iPhone|iPad|iPod/i)) {
+    // 在 iOS 上，直接触发下载会打开文件选择器
+    link.target = '_blank';
+  }
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // 延迟释放 URL 对象，确保下载完成
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 100);
 }
 
 /**

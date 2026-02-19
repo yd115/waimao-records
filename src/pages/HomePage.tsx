@@ -248,8 +248,8 @@ export default function HomePage() {
             </div>
           </div>
           
-          {/* 操作按钮 - 移动端横向滚动 */}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3">
+          {/* 操作按钮 - 移动端优化 */}
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild className="flex-shrink-0">
               <Link to="/quote-generator" className="gap-2">
                 <Calculator className="h-4 w-4" />
