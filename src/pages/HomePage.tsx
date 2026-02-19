@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { QuickInput } from '@/components/QuickInput';
@@ -7,24 +7,26 @@ import { RecordList } from '@/components/RecordList';
 import { EditDialog } from '@/components/EditDialog';
 import { TagManager } from '@/components/TagManager';
 import { TodayCustomers } from '@/components/TodayCustomers';
-import { Download, FileText, Info, Calculator, LogOut, User } from 'lucide-react';
+import { Download, Upload, Info, Calculator, LogOut } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { BusinessRecord } from '@/types';
 import { recordApi, tagApi } from '@/db/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { exportToCSV, exportByDate } from '@/lib/csv';
+import { exportToExcel, importFromExcel } from '@/lib/excel';
 import { analyzeContent } from '@/lib/analyzer';
 import { toast } from 'sonner';
 
 export default function HomePage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [records, setRecords] = useState<BusinessRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<BusinessRecord[]>([]);
   const [editingRecord, setEditingRecord] = useState<BusinessRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
 
   // 加载记录
   const loadRecords = useCallback(async () => {
@@ -152,14 +154,14 @@ export default function HomePage() {
     setIsEditDialogOpen(true);
   };
 
-  // 导出 CSV
-  const handleExportCSV = () => {
+  // 导出 Excel
+  const handleExport = () => {
     try {
-      if (filteredRecords.length === 0) {
+      if (records.length === 0) {
         toast.error('没有可导出的记录');
         return;
       }
-      exportToCSV(filteredRecords);
+      exportToExcel(records);
       toast.success('导出成功');
     } catch (error) {
       toast.error('导出失败');
@@ -167,18 +169,57 @@ export default function HomePage() {
     }
   };
 
-  // 按日期导出
-  const handleExportByDate = () => {
+  // 导入 Excel
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      toast.error('请选择 Excel 文件（.xlsx 或 .xls）');
+      return;
+    }
+
+    setImporting(true);
     try {
-      if (records.length === 0) {
-        toast.error('没有可导出的记录');
+      const importedRecords = await importFromExcel(file);
+      
+      if (importedRecords.length === 0) {
+        toast.error('文件中没有有效的记录');
         return;
       }
-      exportByDate(records);
-      toast.success('按日期导出成功');
+
+      // 批量导入记录
+      let successCount = 0;
+      for (const record of importedRecords) {
+        if (user && record.content) {
+          const result = await recordApi.create(
+            {
+              content: record.content,
+              tags: record.tags || [],
+              timestamp: record.timestamp || new Date().toISOString(),
+              structured: record.structured || analyzeContent(record.content),
+            },
+            user.id
+          );
+          if (result) successCount++;
+        }
+      }
+
+      loadRecords();
+      toast.success(`成功导入 ${successCount} 条记录`);
     } catch (error) {
-      toast.error('导出失败');
+      toast.error('导入失败：' + (error as Error).message);
       console.error(error);
+    } finally {
+      setImporting(false);
+      // 清空 input，允许重复选择同一文件
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -216,14 +257,33 @@ export default function HomePage() {
               </Link>
             </Button>
             <TagManager />
-            <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-2 flex-shrink-0">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleExport} 
+              className="gap-2 flex-shrink-0"
+              disabled={records.length === 0}
+            >
               <Download className="h-4 w-4" />
-              <span className="text-sm">导出当前</span>
+              <span className="text-sm">导出</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportByDate} className="gap-2 flex-shrink-0">
-              <FileText className="h-4 w-4" />
-              <span className="text-sm">按日期导出</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleImportClick} 
+              className="gap-2 flex-shrink-0"
+              disabled={importing}
+            >
+              <Upload className="h-4 w-4" />
+              <span className="text-sm">{importing ? '导入中...' : '导入'}</span>
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleFileChange}
+              className="hidden"
+            />
           </div>
         </div>
 

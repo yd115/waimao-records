@@ -23,9 +23,22 @@
   - [x] 更新 `src/components/FilterBar.tsx`
   - [x] 更新 `src/components/EditDialog.tsx`
   - [x] 更新 `src/components/TodayCustomers.tsx` (间接支持)
-- [x] 步骤 6: 验证与清理
+- [x] 步骤 6: Excel 导入导出功能
+  - [x] 安装 xlsx 库
+  - [x] 创建 `src/lib/excel.ts` 实现 Excel 导入导出
+  - [x] 更新 HomePage 添加导入导出按钮
+  - [x] 确保 iOS 兼容性（使用标准文件 API）
+- [x] 步骤 7: 验证与清理
   - [x] 运行 lint 检查
   - [x] 验证数据持久化和用户隔离
+
+## 注释
+- ✅ 数据库架构完成，支持用户隔离
+- ✅ 用户认证系统完成（用户名登录）
+- ✅ 所有业务组件已迁移到数据库
+- ✅ Excel 导入导出功能已实现
+- ✅ iOS 兼容性：使用标准 file input 和 download API
+- ✅ 所有代码通过 lint 检查
 
 ## 注释
 - 存储库信息：`/workspace/app-9lfvx6paw8ap`
