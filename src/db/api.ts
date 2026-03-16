@@ -1,4 +1,4 @@
-﻿import { supabase } from './supabase';
+import { supabase } from './supabase';
 import type { BusinessRecord, Tag, StructuredInfo } from '@/types';
 
 function mapRecord(dbRecord: any): BusinessRecord {
@@ -130,7 +130,7 @@ export const tagApi = {
   },
 
   async initializeDefaults(userId: string): Promise<Tag[]> {
-    const defaultNames = ['客户', '品名', '业务类型', '运费', '反馈', '船公司'];
+    const defaultNames = ['客户', '品名', '业务类型', '运费', '船公司'];
 
     await supabase
       .from('tags')

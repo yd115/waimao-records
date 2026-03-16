@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { QuickInput } from '@/components/QuickInput';
@@ -23,6 +23,7 @@ export default function HomePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [records, setRecords] = useState<BusinessRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<BusinessRecord[]>([]);
+  const [availablePorts, setAvailablePorts] = useState<string[]>([]);
   const [editingRecord, setEditingRecord] = useState<BusinessRecord | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ export default function HomePage() {
       const allRecords = await recordApi.getAll();
       setRecords(allRecords);
       setFilteredRecords(allRecords);
+      setAvailablePorts(Array.from(new Set(allRecords.flatMap(record => record.structured?.ports || []))).sort());
 
       await tagApi.initializeDefaults(user.id);
     } catch (error) {
@@ -106,7 +108,7 @@ export default function HomePage() {
     toast.success('已注销');
   };
 
-  const handleFilterChange = useCallback((tags: string[], keyword: string, date?: Date) => {
+  const handleFilterChange = useCallback((tags: string[], keyword: string, date?: Date, port?: string) => {
     let filtered = [...records];
 
     if (date) {
@@ -127,6 +129,13 @@ export default function HomePage() {
     if (keyword.trim()) {
       const lowerKeyword = keyword.toLowerCase();
       filtered = filtered.filter(record => record.content.toLowerCase().includes(lowerKeyword));
+    }
+
+    if (port?.trim()) {
+      const upperPort = port.trim().toUpperCase();
+      filtered = filtered.filter(record =>
+        (record.structured?.ports || []).some(item => item.toUpperCase().includes(upperPort))
+      );
     }
 
     setFilteredRecords(filtered);
@@ -269,7 +278,7 @@ export default function HomePage() {
           <Info className="h-4 w-4 flex-shrink-0" />
           <AlertDescription className="text-xs leading-relaxed">
             <div className="space-y-1">
-              <div><strong>智能分析：</strong>自动识别客户、国家、产品和流程关键词</div>
+              <div><strong>智能分析：</strong>自动识别客户、港口、国家、产品和流程关键词</div>
               <div><strong>隐私安全：</strong>数据永久存储在 Supabase 数据库中，受加密保护</div>
             </div>
           </AlertDescription>
@@ -286,6 +295,9 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-1">
               <span className="px-1.5 py-0.5 rounded text-xs bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300">公司</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="px-1.5 py-0.5 rounded text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">港口</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">国家</span>
@@ -308,7 +320,7 @@ export default function HomePage() {
               共 {records.length} 条，显示 {filteredRecords.length} 条
             </span>
           </h2>
-          <FilterBar onFilterChange={handleFilterChange} />
+          <FilterBar onFilterChange={handleFilterChange} availablePorts={availablePorts} />
         </div>
 
         <RecordList records={filteredRecords} onEdit={handleEditRecord} onDelete={handleDeleteRecord} />
@@ -328,6 +340,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-

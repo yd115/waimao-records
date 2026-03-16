@@ -53,6 +53,5 @@ export const DEFAULT_TAGS: Tag[] = [
   { id: 'tag-2', name: '品名', category: '产品' },
   { id: 'tag-3', name: '业务类型', category: '业务' },
   { id: 'tag-4', name: '运费', category: '财务' },
-  { id: 'tag-5', name: '反馈', category: '跟进' },
-  { id: 'tag-6', name: '船公司', category: '物流' }
+  { id: 'tag-5', name: '船公司', category: '物流' }
 ];

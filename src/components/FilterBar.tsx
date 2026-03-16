@@ -4,30 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Search, Filter, X, CalendarIcon } from 'lucide-react';
+import { Search, Filter, X, CalendarIcon, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { Tag } from '@/types';
 import { tagApi } from '@/db/api';
 
 interface FilterBarProps {
-  onFilterChange: (tags: string[], keyword: string, date?: Date) => void;
+  onFilterChange: (tags: string[], keyword: string, date?: Date, port?: string) => void;
+  availablePorts?: string[];
 }
 
-export function FilterBar({ onFilterChange }: FilterBarProps) {
+export function FilterBar({ onFilterChange, availablePorts = [] }: FilterBarProps) {
   const [keyword, setKeyword] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedPort, setSelectedPort] = useState('');
   const [allTags, setAllTags] = useState<Tag[]>([]);
 
   const loadTags = useCallback(async () => {
     const tags = await tagApi.getAll();
     setAllTags(tags);
   }, []);
-  useEffect(() => {
-    onFilterChange(selectedTags, keyword, selectedDate);
-  }, [selectedTags, keyword, selectedDate, onFilterChange]);
 
+  useEffect(() => {
+    onFilterChange(selectedTags, keyword, selectedDate, selectedPort);
+  }, [selectedTags, keyword, selectedDate, selectedPort, onFilterChange]);
 
   useEffect(() => {
     loadTags();
@@ -45,15 +47,14 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
     setKeyword('');
     setSelectedTags([]);
     setSelectedDate(undefined);
+    setSelectedPort('');
   };
 
-  const hasActiveFilters = keyword.length > 0 || selectedTags.length > 0 || selectedDate !== undefined;
+  const hasActiveFilters = keyword.length > 0 || selectedTags.length > 0 || selectedDate !== undefined || selectedPort.length > 0;
 
   return (
     <div className="space-y-3">
-      {/* 搜索框和筛选按钮 - 移动端优化 */}
       <div className="flex flex-col gap-2">
-        {/* 关键词搜索 */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -64,9 +65,23 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
           />
         </div>
 
-        {/* 筛选按钮组 */}
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="按港口筛选，如 PENANG / XINGANG / CATLAI"
+            value={selectedPort}
+            onChange={(e) => setSelectedPort(e.target.value)}
+            list="port-options"
+            className="pl-9 h-10 text-base"
+          />
+          <datalist id="port-options">
+            {availablePorts.map((port) => (
+              <option key={port} value={port} />
+            ))}
+          </datalist>
+        </div>
+
         <div className="flex gap-2">
-          {/* 日期筛选 */}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2 flex-1 h-9 text-sm">
@@ -87,7 +102,6 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
             </PopoverContent>
           </Popover>
 
-          {/* 标签筛选 */}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2 flex-1 h-9 text-sm">
@@ -123,7 +137,6 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
             </PopoverContent>
           </Popover>
 
-          {/* 清除筛选 */}
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2 h-9 px-3">
               <X className="h-4 w-4" />
@@ -132,8 +145,7 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
         </div>
       </div>
 
-      {/* 已选筛选条件显示 - 移动端优化 */}
-      {(selectedTags.length > 0 || selectedDate) && (
+      {(selectedTags.length > 0 || selectedDate || selectedPort) && (
         <div className="flex flex-wrap gap-2 items-center text-xs">
           {selectedDate && (
             <Badge
@@ -142,6 +154,16 @@ export function FilterBar({ onFilterChange }: FilterBarProps) {
               onClick={() => setSelectedDate(undefined)}
             >
               {format(selectedDate, 'MM月dd日', { locale: zhCN })}
+              <X className="h-3 w-3" />
+            </Badge>
+          )}
+          {selectedPort && (
+            <Badge
+              variant="secondary"
+              className="gap-1 cursor-pointer py-1 px-2"
+              onClick={() => setSelectedPort('')}
+            >
+              港口: {selectedPort}
               <X className="h-3 w-3" />
             </Badge>
           )}
