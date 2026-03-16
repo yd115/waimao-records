@@ -92,23 +92,15 @@ export function parseQuoteInput(input: string): QuoteInfo {
   }
 
   // 5. 提取包装方式（优先匹配带重量的包装）
-  // 先匹配带重量的包装（如 1000kg吨包、25kg小袋）
-  const packingWithWeightMatch = input.match(/(\d+kg[吨包|小袋|大袋])/);
+  // 例如：1000kg吨包、500kg大袋、25kg小袋
+  const packingWithWeightMatch = input.match(/(\d+(?:\.\d+)?)\s*kg\s*(吨包|小袋|大袋)/i);
   if (packingWithWeightMatch) {
-    const packingText = packingWithWeightMatch[1];
-    for (const [cn, en] of Object.entries(PACKING_MAP)) {
-      if (packingText.includes(cn.replace(/\d+kg/, ''))) {
-        // 提取重量并构建包装描述
-        const weight = packingWithWeightMatch[1].match(/(\d+)kg/)?.[1];
-        if (weight) {
-          if (packingText.includes('吨包') || packingText.includes('大袋')) {
-            info.packing = `${weight}kg big bags with pallets`;
-          } else if (packingText.includes('小袋')) {
-            info.packing = `${weight}kg bags with pallets`;
-          }
-        }
-        break;
-      }
+    const [, weight, packingType] = packingWithWeightMatch;
+
+    if (packingType === '小袋') {
+      info.packing = `${weight}kg bags with pallets`;
+    } else {
+      info.packing = `${weight}kg big bags with pallets`;
     }
   }
   

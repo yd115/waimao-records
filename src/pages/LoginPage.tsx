@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,10 @@ import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signInWithUsername, signUpWithUsername } = useAuth();
+  const { signInWithEmail, signUpWithEmail } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,16 +20,16 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password) {
-      toast.error('请输入用户名和密码');
+    if (!email || !password) {
+      toast.error('请输入邮箱和密码');
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = isLogin 
-        ? await signInWithUsername(username, password)
-        : await signUpWithUsername(username, password);
+      const { error } = isLogin
+        ? await signInWithEmail(email, password)
+        : await signUpWithEmail(email, password);
 
       if (error) {
         toast.error(error.message);
@@ -52,19 +52,19 @@ export default function LoginPage() {
             {isLogin ? '欢迎回来' : '创建账号'}
           </CardTitle>
           <CardDescription className="text-center">
-            {isLogin ? '输入您的用户名和密码以登录' : '输入您的用户名和密码以注册'}
+            {isLogin ? '输入您的邮箱和密码以登录' : '输入您的邮箱和密码以注册'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">用户名</Label>
+              <Label htmlFor="email">邮箱</Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="仅允许字母、数字和下划线"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>

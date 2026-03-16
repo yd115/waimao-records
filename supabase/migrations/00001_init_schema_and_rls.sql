@@ -1,4 +1,4 @@
--- 1. 创建角色枚举和用户信息表
+﻿-- 1. 创建角色枚举和用户信息表
 CREATE TYPE public.user_role AS ENUM ('user', 'admin');
 
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -25,12 +25,21 @@ BEGIN
     NEW.email,
     NEW.phone,
     CASE WHEN user_count = 0 THEN 'admin'::public.user_role ELSE 'user'::public.user_role END
-  );
+  )
+  ON CONFLICT (id) DO UPDATE
+  SET email = EXCLUDED.email,
+      phone = EXCLUDED.phone;
   RETURN NEW;
 END;
 $$;
 
--- 触发器：auth.users 更新 confirmed_at 时触发同步
+-- 触发器：用户创建/确认时同步 profile
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION handle_new_user();
+
 DROP TRIGGER IF EXISTS on_auth_user_confirmed ON auth.users;
 CREATE TRIGGER on_auth_user_confirmed
   AFTER UPDATE ON auth.users

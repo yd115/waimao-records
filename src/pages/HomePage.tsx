@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { QuickInput } from '@/components/QuickInput';
@@ -28,7 +28,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
 
-  // 加载记录
   const loadRecords = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -36,12 +35,8 @@ export default function HomePage() {
       const allRecords = await recordApi.getAll();
       setRecords(allRecords);
       setFilteredRecords(allRecords);
-      
-      // 检查是否需要初始化默认标签
-      const tags = await tagApi.getAll();
-      if (tags.length === 0) {
-        await tagApi.initializeDefaults(user.id);
-      }
+
+      await tagApi.initializeDefaults(user.id);
     } catch (error) {
       toast.error('加载记录失败');
     } finally {
@@ -53,10 +48,9 @@ export default function HomePage() {
     loadRecords();
   }, [loadRecords]);
 
-  // 添加新记录
   const handleAddRecord = async (content: string, tags: string[], timestamp: Date) => {
     if (!user) return;
-    
+
     const newRecordData = {
       timestamp: timestamp.toISOString(),
       content,
@@ -72,13 +66,12 @@ export default function HomePage() {
     }
   };
 
-  // 更新记录
   const handleUpdateRecord = async (
     id: string,
     content: string,
     tags: string[],
     timestamp: Date,
-    keepOriginalTime: boolean
+    _keepOriginalTime: boolean
   ) => {
     if (!user) return;
 
@@ -97,7 +90,6 @@ export default function HomePage() {
     }
   };
 
-  // 删除记录
   const handleDeleteRecord = async (id: string) => {
     const success = await recordApi.delete(id);
     if (success) {
@@ -114,15 +106,13 @@ export default function HomePage() {
     toast.success('已注销');
   };
 
-  // 筛选记录
   const handleFilterChange = useCallback((tags: string[], keyword: string, date?: Date) => {
     let filtered = [...records];
 
-    // 日期筛选
     if (date) {
       const targetDate = new Date(date);
       targetDate.setHours(0, 0, 0, 0);
-      
+
       filtered = filtered.filter(record => {
         const recordDate = new Date(record.timestamp);
         recordDate.setHours(0, 0, 0, 0);
@@ -130,31 +120,23 @@ export default function HomePage() {
       });
     }
 
-    // 标签筛选
     if (tags.length > 0) {
-      filtered = filtered.filter(record =>
-        tags.some(tag => record.tags.includes(tag))
-      );
+      filtered = filtered.filter(record => tags.some(tag => record.tags.includes(tag)));
     }
 
-    // 关键词搜索
     if (keyword.trim()) {
       const lowerKeyword = keyword.toLowerCase();
-      filtered = filtered.filter(record =>
-        record.content.toLowerCase().includes(lowerKeyword)
-      );
+      filtered = filtered.filter(record => record.content.toLowerCase().includes(lowerKeyword));
     }
 
     setFilteredRecords(filtered);
   }, [records]);
 
-  // 编辑记录
   const handleEditRecord = (record: BusinessRecord) => {
     setEditingRecord(record);
     setIsEditDialogOpen(true);
   };
 
-  // 导出 Excel
   const handleExport = () => {
     try {
       if (records.length === 0) {
@@ -169,7 +151,6 @@ export default function HomePage() {
     }
   };
 
-  // 导入 Excel
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
@@ -186,13 +167,12 @@ export default function HomePage() {
     setImporting(true);
     try {
       const importedRecords = await importFromExcel(file);
-      
+
       if (importedRecords.length === 0) {
         toast.error('文件中没有有效的记录');
         return;
       }
 
-      // 批量导入记录
       let successCount = 0;
       for (const record of importedRecords) {
         if (user && record.content) {
@@ -216,7 +196,6 @@ export default function HomePage() {
       console.error(error);
     } finally {
       setImporting(false);
-      // 清空 input，允许重复选择同一文件
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -226,16 +205,11 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-full mx-auto py-4 px-3 space-y-4">
-        {/* 页头 - 移动端优化 */}
         <div className="space-y-3">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-xl font-bold text-foreground">
-                外贸工作记录
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                快速记录和查找工作信息
-              </p>
+              <h1 className="text-xl font-bold text-foreground">外贸工作记录</h1>
+              <p className="text-sm text-muted-foreground mt-1">快速记录和查找工作信息</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="text-right hidden sm:block mr-2">
@@ -247,8 +221,7 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-          
-          {/* 操作按钮 - 移动端优化 */}
+
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild className="flex-shrink-0">
               <Link to="/quote-generator" className="gap-2">
@@ -257,26 +230,27 @@ export default function HomePage() {
               </Link>
             </Button>
             <TagManager />
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleExport} 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
               className="gap-2 flex-shrink-0"
               disabled={records.length === 0}
             >
               <Download className="h-4 w-4" />
               <span className="text-sm">导出</span>
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleImportClick} 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleImportClick}
               className="gap-2 flex-shrink-0"
               disabled={importing}
             >
               <Upload className="h-4 w-4" />
               <span className="text-sm">{importing ? '导入中...' : '导入'}</span>
             </Button>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -289,10 +263,8 @@ export default function HomePage() {
 
         <Separator />
 
-        {/* 今日联系客户 */}
         <TodayCustomers records={records} />
 
-        {/* 隐私承诺提示 - 移动端优化 */}
         <Alert className="text-sm">
           <Info className="h-4 w-4 flex-shrink-0" />
           <AlertDescription className="text-xs leading-relaxed">
@@ -303,15 +275,11 @@ export default function HomePage() {
           </AlertDescription>
         </Alert>
 
-        {/* 快速记录区 - 移动端优化 */}
         <div className="space-y-3">
           <h2 className="text-base font-semibold text-foreground">快速记录</h2>
           <QuickInput onSubmit={handleAddRecord} />
-          <p className="text-xs text-muted-foreground">
-            💡 提示：使用 Ctrl+Enter 快速保存
-          </p>
-          
-          {/* 智能分析图例 - 移动端优化 */}
+          <p className="text-xs text-muted-foreground">提示：使用 Ctrl+Enter 快速保存</p>
+
           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <span className="px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">客户</span>
@@ -333,7 +301,6 @@ export default function HomePage() {
 
         <Separator />
 
-        {/* 筛选和搜索 - 移动端优化 */}
         <div className="space-y-3">
           <h2 className="text-base font-semibold text-foreground">
             记录列表
@@ -344,14 +311,8 @@ export default function HomePage() {
           <FilterBar onFilterChange={handleFilterChange} />
         </div>
 
-        {/* 记录列表 */}
-        <RecordList
-          records={filteredRecords}
-          onEdit={handleEditRecord}
-          onDelete={handleDeleteRecord}
-        />
+        <RecordList records={filteredRecords} onEdit={handleEditRecord} onDelete={handleDeleteRecord} />
 
-        {/* 编辑对话框 */}
         <EditDialog
           record={editingRecord}
           open={isEditDialogOpen}
@@ -359,7 +320,6 @@ export default function HomePage() {
           onSave={handleUpdateRecord}
         />
 
-        {/* 页脚信息 */}
         <div className="text-center text-sm text-muted-foreground pt-8 pb-4">
           <p>© 2026 外贸工作记录</p>
           <p className="mt-1">数据存储位置：Supabase 数据库</p>
@@ -368,3 +328,6 @@ export default function HomePage() {
     </div>
   );
 }
+
+
+

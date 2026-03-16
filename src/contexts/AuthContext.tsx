@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+﻿import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/db/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { Profile } from '@/types/types';
+import type { Profile } from '@/types';
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
@@ -16,12 +16,13 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   }
   return data;
 }
+
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signInWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
-  signUpWithUsername: (username: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUpWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -51,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
     });
-    // In this function, do NOT use any await calls. Use `.then()` instead to avoid deadlocks.
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -64,9 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithUsername = async (username: string, password: string) => {
+  const signInWithEmail = async (email: string, password: string) => {
     try {
-      const email = `${username}@miaoda.com`;
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -79,9 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUpWithUsername = async (username: string, password: string) => {
+  const signUpWithEmail = async (email: string, password: string) => {
     try {
-      const email = `${username}@miaoda.com`;
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -101,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithUsername, signUpWithUsername, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signInWithEmail, signUpWithEmail, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
