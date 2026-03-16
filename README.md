@@ -1,102 +1,125 @@
-# 欢迎使用你的秒哒应用代码包
-秒哒应用链接
-    URL:https://www.miaoda.cn/projects/app-9lfvx6paw8ap
+# 外贸工作记录
 
-## 介绍
+一个用于日常外贸跟进的轻量工作台，支持记录客户沟通、运价信息、报价信息，并对内容做结构化识别。
 
-项目介绍
+## 功能
 
-## 目录结构
-
-```
-├── README.md # 说明文档
-├── components.json # 组件库配置
-├── index.html # 入口文件
-├── package.json # 包管理
-├── postcss.config.js # postcss 配置
-├── public # 静态资源目录
-│   ├── favicon.png # 图标
-│   └── images # 图片资源
-├── src # 源码目录
-│   ├── App.tsx # 入口文件
-│   ├── components # 组件目录
-│   ├── contexts # 上下文目录
-│   ├── db # 数据库配置目录
-│   ├── hooks # 通用钩子函数目录
-│   ├── index.css # 全局样式
-│   ├── layout # 布局目录
-│   ├── lib # 工具库目录
-│   ├── main.tsx # 入口文件
-│   ├── routes.tsx # 路由配置
-│   ├── pages # 页面目录
-│   ├── services  # 数据库交互目录
-│   ├── types   # 类型定义目录
-├── tsconfig.app.json  # ts 前端配置文件
-├── tsconfig.json # ts 配置文件
-├── tsconfig.node.json # ts node端配置文件
-└── vite.config.ts # vite 配置文件
-```
+- 邮箱注册与登录
+- 工作记录新增、编辑、删除
+- 标签管理
+- Excel 导入与导出
+- 报价生成器
+- 自动识别客户、公司、国家、型号、船公司、流程关键词
+- 数据持久化到 Supabase
 
 ## 技术栈
 
-Vite、TypeScript、React、Supabase
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- Supabase
 
-## 本地开发
+## 环境变量
 
-### 如何在本地编辑代码？
+本地开发或部署时需要配置以下环境变量：
 
-您可以选择 [VSCode](https://code.visualstudio.com/Download) 或者您常用的任何 IDE 编辑器，唯一的要求是安装 Node.js 和 npm.
-
-### 环境要求
-
-```
-# Node.js ≥ 20
-# npm ≥ 10
-例如：
-# node -v   # v20.18.3
-# npm -v    # 10.8.2
+```env
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-publishable-key
+VITE_APP_ID=app-9lfvx6paw8ap
 ```
 
-具体安装步骤如下：
+注意：
+- 不要把 `.env` 提交到 GitHub
+- 线上环境变量请配置在 Vercel 的 Project Settings -> Environment Variables 中
 
-### 在 Windows 上安装 Node.js
+## 本地运行
 
-```
-# Step 1: 访问Node.js官网：https://nodejs.org/，点击下载后，会根据你的系统自动选择合适的版本（32位或64位）。
-# Step 2: 运行安装程序：下载完成后，双击运行安装程序。
-# Step 3: 完成安装：按照安装向导完成安装过程。
-# Step 4: 验证安装：在命令提示符（cmd）或IDE终端（terminal）中输入 node -v 和 npm -v 来检查 Node.js 和 npm 是否正确安装。
-```
+先确保已安装：
 
-### 在 macOS 上安装 Node.js
+- Node.js 20+
+- pnpm 9+ 或 10+
 
-```
-# Step 1: 使用Homebrew安装（推荐方法）：打开终端。输入命令brew install node并回车。如果尚未安装Homebrew，需要先安装Homebrew，
-可以通过在终端中运行如下命令来安装：
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-或者使用官网安装程序：访问Node.js官网。下载macOS的.pkg安装包。打开下载的.pkg文件，按照提示完成安装。
-# Step 2: 验证安装：在命令提示符（cmd）或IDE终端（terminal）中输入 node -v 和 npm -v 来检查 Node.js 和 npm 是否正确安装。
+安装依赖：
+
+```bash
+pnpm install
 ```
 
-### 安装完后按照如下步骤操作：
+启动开发环境：
 
-```
-# Step 1: 下载代码包
-# Step 2: 解压代码包
-# Step 3: 用IDE打开代码包，进入代码目录
-# Step 4: IDE终端输入命令行，安装依赖：npm i
-# Step 5: IDE终端输入命令行，启动开发服务器：npm run dev -- --host 127.0.0.1
+```bash
+pnpm dev -- --host 127.0.0.1 --port 4173
 ```
 
-### 如何开发后端服务？
+本地访问：
 
-配置环境变量，安装相关依赖
-如需使用数据库，请使用 supabase 官方版本或自行部署开源版本的 Supabase
+- `http://127.0.0.1:4173/`
+- `http://127.0.0.1:4173/login`
+- `http://127.0.0.1:4173/quote-generator`
 
-### 如何配置应用中的三方 API？
+## Supabase 初始化
 
-具体三方 API 调用方法，请参考帮助文档：[源码导出](https://cloud.baidu.com/doc/MIAODA/s/Xmewgmsq7)，了解更多详细内容。
+项目依赖 Supabase 作为认证和数据库服务。
 
-## 了解更多
+初始化步骤：
 
-您也可以查看帮助文档：[源码导出](https://cloud.baidu.com/doc/MIAODA/s/Xmewgmsq7)，了解更多详细内容。
+1. 新建一个 Supabase 项目
+2. 打开 SQL Editor
+3. 执行以下文件中的 SQL：
+
+[`supabase/migrations/00001_init_schema_and_rls.sql`](./supabase/migrations/00001_init_schema_and_rls.sql)
+
+建议同时确认：
+
+- 已关闭邮箱确认，便于直接注册登录
+- `profiles`、`records`、`tags` 三张表已创建成功
+
+## 部署
+
+推荐部署方案：
+
+- 前端：Vercel
+- 数据库：Supabase
+
+Vercel 配置建议：
+
+- Framework Preset：Vite
+- Build Command：`pnpm build`
+- Output Directory：`dist`
+
+项目已包含 `vercel.json`，用于保证单页应用路由在 Vercel 上正常工作。
+
+## 项目结构
+
+```text
+.
+├── src
+│   ├── components
+│   ├── contexts
+│   ├── db
+│   ├── lib
+│   ├── pages
+│   ├── types
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── routes.tsx
+├── supabase
+│   └── migrations
+├── index.html
+├── package.json
+├── vercel.json
+└── README.md
+```
+
+## 使用建议
+
+- 工作数据请优先保存在 Supabase，不要依赖浏览器本地缓存
+- 如果长期日常使用，建议后续给 Supabase 升级付费计划，避免免费项目长时间不用被暂停
+- 每次上线前可先执行：
+
+```bash
+pnpm lint
+pnpm build
+```
