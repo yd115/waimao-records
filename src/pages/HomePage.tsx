@@ -7,7 +7,7 @@ import { RecordList } from '@/components/RecordList';
 import { EditDialog } from '@/components/EditDialog';
 import { TagManager } from '@/components/TagManager';
 import { TodayCustomers } from '@/components/TodayCustomers';
-import { Download, Upload, Info, Calculator, LogOut } from 'lucide-react';
+import { Download, Upload, Info, Calculator, BarChart3, LogOut } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { BusinessRecord } from '@/types';
@@ -232,6 +232,12 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild className="flex-shrink-0">
+              <Link to="/analytics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="text-sm">筛选统计</span>
+              </Link>
+            </Button>
             <Button variant="outline" size="sm" asChild className="flex-shrink-0">
               <Link to="/quote-generator" className="gap-2">
                 <Calculator className="h-4 w-4" />

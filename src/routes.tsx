@@ -1,5 +1,6 @@
 import HomePage from './pages/HomePage';
 import { QuoteGeneratorPage } from './pages/QuoteGeneratorPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import LoginPage from './pages/LoginPage';
 import type { ReactNode } from 'react';
 
@@ -20,6 +21,11 @@ const routes: RouteConfig[] = [
     name: '外贸工作记录',
     path: '/',
     element: <HomePage />
+  },
+  {
+    name: '筛选统计',
+    path: '/analytics',
+    element: <AnalyticsPage />
   },
   {
     name: '报价格式生成器',
