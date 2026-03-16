@@ -1,4 +1,4 @@
-﻿export interface Profile {
+export interface Profile {
   id: string;
   username?: string | null;
   email?: string | null;
@@ -18,6 +18,7 @@ export interface StructuredInfo {
   customers?: string[];
   companies?: string[];
   shippingCompanies?: string[];
+  ports?: string[];
   countries?: string[];
   products?: string[];
   workflows?: string[];

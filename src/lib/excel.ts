@@ -1,4 +1,4 @@
-﻿import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx';
 import type { BusinessRecord } from '@/types';
 import { format } from 'date-fns';
 
@@ -14,6 +14,7 @@ export function exportToExcel(records: BusinessRecord[], filename?: string) {
     '客户': record.structured?.customers?.join(', ') || '',
     '公司': record.structured?.companies?.join(', ') || '',
     '船公司': record.structured?.shippingCompanies?.join(', ') || '',
+    '港口': record.structured?.ports?.join(', ') || '',
     '国家/地区': record.structured?.countries?.join(', ') || '',
     '产品型号': record.structured?.products?.join(', ') || '',
     '工作流程': record.structured?.workflows?.join(', ') || '',
@@ -30,6 +31,7 @@ export function exportToExcel(records: BusinessRecord[], filename?: string) {
     { wch: 20 },
     { wch: 24 },
     { wch: 16 },
+    { wch: 18 },
     { wch: 15 },
     { wch: 20 },
     { wch: 20 },
@@ -90,6 +92,9 @@ export async function importFromExcel(file: File): Promise<Partial<BusinessRecor
           }
           if (row['船公司']) {
             structured.shippingCompanies = String(row['船公司']).split(',').map((s: string) => s.trim()).filter(Boolean);
+          }
+          if (row['港口']) {
+            structured.ports = String(row['港口']).split(',').map((s: string) => s.trim()).filter(Boolean);
           }
           if (row['国家/地区']) {
             structured.countries = String(row['国家/地区']).split(',').map((s: string) => s.trim()).filter(Boolean);

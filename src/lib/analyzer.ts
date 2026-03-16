@@ -1,4 +1,4 @@
-﻿import type { StructuredInfo } from '@/types';
+import type { StructuredInfo } from '@/types';
 
 const COUNTRY_KEYWORDS = [
   '中国', '美国', '英国', '法国', '德国', '意大利', '西班牙', '葡萄牙',
@@ -236,6 +236,19 @@ function extractCustomers(content: string, companies: string[], shippingCompanie
   return deduplicateByInclusion(Array.from(customers));
 }
 
+function extractPorts(content: string): string[] {
+  const ports = new Set<string>();
+
+  const upperContent = content.toUpperCase();
+  for (const port of Object.keys(PORT_COUNTRY_MAP)) {
+    if (upperContent.includes(port) || content.includes(port)) {
+      ports.add(port);
+    }
+  }
+
+  return deduplicateByInclusion(Array.from(ports).map(normalizePort));
+}
+
 function extractCountries(content: string): string[] {
   const countries = new Set<string>();
 
@@ -403,6 +416,22 @@ function isPortLike(value: string) {
 function isPackagingLike(value: string) {
   const normalized = value.toUpperCase().replace(/\s+/g, ' ').trim();
   return Array.from(PACKAGING_TERMS).some(term => normalized.includes(term));
+}
+
+function normalizePort(value: string) {
+  switch (value.toUpperCase()) {
+    case 'CATLAI':
+    case 'CAT LAI':
+      return 'CATLAI';
+    case 'BUENOSAIRES':
+    case 'BUENOS AIRES':
+      return 'BUENOS AIRES';
+    case 'PORTKLANG':
+    case 'PORT KLANG':
+      return 'PORT KLANG';
+    default:
+      return value;
+  }
 }
 
 function normalizeCountry(value: string) {

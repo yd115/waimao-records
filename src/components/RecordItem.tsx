@@ -1,9 +1,9 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Copy, Edit, Trash2, User, Building2, Globe, Package, Workflow, Ship } from 'lucide-react';
+import { MoreVertical, Copy, Edit, Trash2, User, Building2, Globe, MapPin, Package, Workflow, Ship } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { BusinessRecord } from '@/types';
@@ -50,6 +50,7 @@ export function RecordItem({ record, onEdit, onDelete }: RecordItemProps) {
             customer: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
             company: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
             shippingCompany: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300',
+            port: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
             country: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
             product: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
             workflow: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
@@ -104,6 +105,12 @@ export function RecordItem({ record, onEdit, onDelete }: RecordItemProps) {
                 <div className="flex items-center gap-1 text-sky-600 dark:text-sky-400">
                   <Ship className="h-3 w-3 flex-shrink-0" />
                   <span className="truncate">{deduplicateByInclusion(record.structured.shippingCompanies).join(', ')}</span>
+                </div>
+              )}
+              {record.structured.ports && record.structured.ports.length > 0 && (
+                <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <MapPin className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{deduplicateByInclusion(record.structured.ports).join(', ')}</span>
                 </div>
               )}
               {record.structured.countries && record.structured.countries.length > 0 && (
